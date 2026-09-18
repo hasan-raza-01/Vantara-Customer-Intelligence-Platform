@@ -5,9 +5,13 @@ import sys, os
 from .data import DataPipeline 
 from .utils.io import load_yaml
 from .utils import logger, CustomException
+from .utils.function import set_seed
 
 from dotenv import load_dotenv
 load_dotenv()
+
+# fix seeding
+set_seed(42)
 
 
 
