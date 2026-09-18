@@ -3,6 +3,9 @@ An internal analytics system that ingests historical transaction data and produc
 
 # Project Setup
 1. **Manual**
+    - **Install package manager uv by astral**
+        * Official documentation: https://docs.astral.sh/uv/getting-started/installation/
+
     - create virtual environment and install dependencies
     ```
     uv sync
