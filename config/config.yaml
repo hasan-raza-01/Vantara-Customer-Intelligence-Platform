@@ -1,0 +1,5 @@
+data: 
+  collector:
+    source_uri: https://github.com/hasan-raza-01/Data/raw/main/online+retail+ii.zip
+    raw_data_path: data/raw/data.csv
+    schema_path: data/raw/schema.json

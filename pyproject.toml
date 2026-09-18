@@ -1,0 +1,24 @@
+[project]
+name = "vantara-customer-intelligence-platform"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "hasan-raza-01", email = "hasan.raza12003@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "ipykernel==7.3.0",
+    "openpyxl==3.1.5",
+    "pandas==3.0.5",
+    "pydantic==2.13.5",
+    "python-dotenv>=1.2.3",
+    "pyyaml==6.0.3",
+]
+
+[project.scripts]
+vantara-customer-intelligence-platform = "vantara_customer_intelligence_platform:main"
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"

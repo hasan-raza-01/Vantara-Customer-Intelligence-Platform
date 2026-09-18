@@ -3,8 +3,16 @@ An internal analytics system that ingests historical transaction data and produc
 
 # Project Setup
 1. **Manual**
-    - project created and tested on `Python 3.14.4`
-    - install dependencies using virtual/global environment(must meet mentioned python version to avoid errors)
+    - create virtual environment and install dependencies
     ```
-    pip install -r requirements.txt 
+    uv sync
     ```
+    - activate virtual environment 
+        * linux 
+        ```
+        source .venv/bin/activate
+        ```
+        * windows
+        ```
+        .venv\scripts\activate
+        ```
