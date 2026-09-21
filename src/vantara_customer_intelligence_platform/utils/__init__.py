@@ -14,7 +14,7 @@ def get_logger(name: str | None = None):
         level=logging.INFO,
         filename=filepath,
         filemode="a",
-        format="[%(asctime)s]- %(levelname)s - %(message)s  - %(lineno)s - %(pathname)s",
+        format="[%(asctime)s]- %(levelname)s - %(lineno)s - %(message)s - %(pathname)s",
         datefmt="%d/%m/%Y-%H:%M:%S")
     return logging.getLogger(name)
 
@@ -27,7 +27,7 @@ class CustomException(Exception):
         _, _, exc_traceback = sys.exc_info()
         file_path = exc_traceback.tb_frame.f_code.co_filename
         line_no = exc_traceback.tb_lineno
-        self.mssg = f"{message}, line: {line_no}, file: {file_path}"
+        self.mssg = f"\n\tmessage: {message} \n\tline: {line_no} \n\tpath: {file_path}\n"
 
     def __str__(self) -> str:
         return self.mssg

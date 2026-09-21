@@ -25,7 +25,7 @@ def load_json(s:str | None = None, path:str | None = None) -> dict:
     except Exception as e:
         raise CustomException(e, sys)
 
-def dump_json(data:dict, path:str | None = None) -> None:
+def dump_json(data:dict, path:str | None = None) -> str | None:
     """saves the dictoanary into json file
 
     Args:
