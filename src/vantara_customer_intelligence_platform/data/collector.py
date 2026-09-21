@@ -137,16 +137,14 @@ class DataCollector(BaseModel):
 
             try:
                 logger.info("persisting concatenated data...")
-
                 self.final_data_path=self.raw_data_path.absolute()
                 self.df.to_csv(self.final_data_path, index=False)
-
                 logger.info("data persisted successfully")
+
+                # add extracted files to cleaning paths
+                self.cleaning_paths.append(self.extracted_file_path)
             except Exception as e: 
                 logger.warning(f"failed to persist concatenated data, reason: {e}")
-
-            # add extracted files to cleaning paths
-            self.cleaning_paths.append(self.extracted_file_path)
 
         except Exception as e: 
             logger.error(str(e))
@@ -157,8 +155,8 @@ class DataCollector(BaseModel):
         try: 
             logger.info("creating PostgreSQL engine")
             engine = create_engine(self.db_url)
-            logger.info("inserting records to PostgreSQL...")
 
+            logger.info("inserting records to PostgreSQL...")
             start_time = time.time()
             self.df.to_sql(
                 name = self.table_name, 
@@ -168,9 +166,9 @@ class DataCollector(BaseModel):
                 dtype = SqlFeaturesSchema
             )
             logger.info(f"time taken to insert records is {(time.time()-start_time):.2f} seconds")
+            
         except Exception as e: 
-            logger.error(str(e))
-            raise CustomException(e, sys)
+            logger.warning(f"failed to ingest data to postgreSQL, reason: {str(e)}")
 
     def schema(self): 
         "generates schema for final dataframe"
