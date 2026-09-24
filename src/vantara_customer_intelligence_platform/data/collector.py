@@ -4,7 +4,10 @@ from sqlalchemy import create_engine
 from zipfile import ZipFile
 from pathlib import Path
 import pandas as pd
-import sys, time, os
+import sys, \
+        time, \
+        os, \
+        asyncio
 
 from vantara_customer_intelligence_platform.utils import CustomException, logger
 from vantara_customer_intelligence_platform.utils.data import generate_schema 
@@ -135,80 +138,99 @@ class DataCollector(BaseModel):
             logger.info("concatenating sheets...")
             self.df = pd.concat(data.values(), ignore_index=True)
 
+            # add extracted files to cleaning paths
+            self.cleaning_paths.append(self.extracted_file_path)
+        except Exception as e: 
+            logger.error(str(e))
+            raise CustomException(e, sys)
+
+    async def persist_data(self): 
+        "async func to persist concatenated DataFrame in local artifact"
+        def fx(): 
             try:
                 logger.info("persisting concatenated data...")
                 self.final_data_path=self.raw_data_path.absolute()
+                start_time = time.time()
                 self.df.to_csv(self.final_data_path, index=False)
-                logger.info("data persisted successfully")
+                logger.info(f"time taken to persist data to local: {(time.time()-start_time):.2f} sec")
 
-                # add extracted files to cleaning paths
-                self.cleaning_paths.append(self.extracted_file_path)
             except Exception as e: 
                 logger.warning(f"failed to persist concatenated data, reason: {e}")
+        return await asyncio.to_thread(fx)
 
-        except Exception as e: 
-            logger.error(str(e))
-            raise CustomException(e, sys)
+    async def ingest(self): 
+        "async func for data ingestion of concatenated data to postgreSQL"
+        def fx(): 
+            try: 
+                logger.info("creating PostgreSQL engine")
+                engine = create_engine(self.db_url)
 
-    def ingest(self): 
-        "ingests data to final data postgreSQL database"
-        try: 
-            logger.info("creating PostgreSQL engine")
-            engine = create_engine(self.db_url)
+                logger.info("inserting records to PostgreSQL...")
+                start_time = time.time()
+                self.df.to_sql(
+                    name = self.table_name, 
+                    con = engine, 
+                    if_exists = "replace",
+                    index=False,
+                    dtype = SqlFeaturesSchema
+                )
+                logger.info(f"time taken to insert records is {(time.time()-start_time):.2f} seconds")
+            except Exception as e: 
+                logger.warning(f"failed to ingest data to postgreSQL, reason: {str(e)}")
+        return await asyncio.to_thread(fx)
+    
+    async def schema_generation(self): 
+        "generates schema for final dataframe and persist to local artifact"
+        def fx():
+            try:
+                logger.info("generating schema...") 
+                schema = generate_schema(self.df)
+                logger.info("saving schema...")
+                dump_json(schema.model_dump(), self.schema_path)
 
-            logger.info("inserting records to PostgreSQL...")
-            start_time = time.time()
-            self.df.to_sql(
-                name = self.table_name, 
-                con = engine, 
-                if_exists = "replace",
-                index=False,
-                dtype = SqlFeaturesSchema
-            )
-            logger.info(f"time taken to insert records is {(time.time()-start_time):.2f} seconds")
-            
-        except Exception as e: 
-            logger.warning(f"failed to ingest data to postgreSQL, reason: {str(e)}")
-
-    def schema(self): 
-        "generates schema for final dataframe"
-        try:
-            logger.info("generating schema...") 
-            schema = generate_schema(self.df)
-
-            logger.info("saving schema...")
-            dump_json(schema.model_dump(), self.schema_path)
-
-            logger.info("schema saved successfully")
-        except Exception as e: 
-            logger.error(str(e))
-            raise CustomException(e, sys)
-
+                logger.info("schema saved successfully")
+            except Exception as e: 
+                logger.error(str(e))
+                raise CustomException(e, sys)
+        return await asyncio.to_thread(fx)
+    
     def clean(self): 
         "deletes all files created throughout module process except final data file"
         try: 
-            logger.info("cleaning all unwanted files...")
+            if self.delete:
+                logger.info("cleaning all unwanted files...")
 
-            # clean all unwanted files created through out process 
-            for path in set(self.cleaning_paths):
-                path.unlink()
+                # clean all unwanted files created through out process 
+                for path in set(self.cleaning_paths):
+                    path.unlink()
 
-            logger.info("cleaning completed")
+                logger.info("cleaning completed")
+            else: 
+                logger.info("user choosen not to clean, not cleaning directory")
         except Exception as e: 
             logger.error(str(e))
             raise CustomException(e, sys)
 
-    def collect(self): 
+    async def main(self): 
         "method that runs full data collection process"
         self.path.mkdir(parents=True, exist_ok=True)
         self.download()
         self.extract()
         self.concat()
-        self.ingest()
-        self.schema()
-        if self.delete:
-            self.clean()
-        else: 
-            logger.info("user choosen not to clean, not cleaning directory")
+        await asyncio.gather(
+            self.persist_data(),
+            self.ingest(),
+            self.schema_generation(),
+        )
+        self.clean()
 
+    def collect(self): 
+        start_time = time.time()
+
+        asyncio.run(self.main())
+        
+        time_taken = time.time() - start_time
+        message = f"total time taken by DataCollector: {time_taken:.2f} sec"
+        print("\n", message)
+        logger.info(message)
 

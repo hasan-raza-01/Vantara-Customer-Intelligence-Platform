@@ -18,7 +18,7 @@ def load_json(s:str | None = None, path:str | None = None) -> dict:
         if path and s: 
             raise ValueError("param \'s\' & \'path\' both are provided at same time, only 1 arg is supported at a time")
         elif path:
-            with open(Path(path), 'r') as f:
+            with open(Path(path).absolute(), 'r') as f:
                 return json.load(f)
         else: 
             return json.loads(s)
@@ -34,7 +34,7 @@ def dump_json(data:dict, path:str | None = None) -> str | None:
     """
     try:
         if path: 
-            with open(Path(path), "w") as f:
+            with open(Path(path).absolute(), "w") as f:
                 json.dump(data, fp=f, default=str, indent=4)
         else:
             return json.dumps(data, default=str, indent=4)
@@ -51,7 +51,7 @@ def load_yaml(path:str) -> dict:
         ConfigBox: dict["key"] = value --------->  dict.key = value
     """
     try:
-        with open(Path(path), "r") as yaml_file_obj:
+        with open(Path(path).absolute(), "r") as yaml_file_obj:
             return yaml.safe_load(yaml_file_obj)
     except Exception as e:
         raise CustomException(e, sys)
@@ -64,7 +64,7 @@ def dump_yaml(content:dict, file_path:str) -> None:
         path (str): path to save the file
     """
     try:
-        with open(Path(file_path), "w") as file:
+        with open(Path(file_path).absolute(), "w") as file:
             yaml.safe_dump(content, file)
     except Exception as e:
         raise CustomException(e, sys)
