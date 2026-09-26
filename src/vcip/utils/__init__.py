@@ -27,7 +27,7 @@ class CustomException(Exception):
         _, _, exc_traceback = sys.exc_info()
         file_path = exc_traceback.tb_frame.f_code.co_filename
         line_no = exc_traceback.tb_lineno
-        self.mssg = f"\n\tmessage: {message} \n\tline: {line_no} \n\tpath: {file_path}\n"
+        self.mssg = f"\n\n\tmessage: {message} \n\tline: {line_no} \n\tpath: {file_path}\n\n"
 
     def __str__(self) -> str:
         return self.mssg

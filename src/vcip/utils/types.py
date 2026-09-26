@@ -44,7 +44,59 @@ SqlFeaturesSchema = {
     'Country': PandasDtypeName2SqlalchemyType["str"]
 }
 
+# operators
+class DataCollectorConfigType(BaseModel): 
+    """
+    DESCRIPTION: configuration for DataCollector
+    
+    PARAMS: 
+    - source_uri (str): source uri of the file 
+    - raw_data_path (Path): path to save final dataframe as .csv
+    - schema_path (Path): path to save json schema 
+    - delete (bool): True delets all previous files create in the process of making final .csv file, False leaves all file which you can see and inspect, defaults to True
+    - db_name (str): database name to connect with postgreSQL, defaults to churn 
+    - db_host (str): postgreSQL host address, defaults to 127.0.0.1
+    - db_port (int): postgreSQL port to connect, defaults to 5432
+    - db_user (str | None): database username for postgreSQL to connect, default to none. Note: if None then env var \"DB_USER\" must be available or throws error
+    - db_pass (str | None): database password for postgreSQL to connect, default to none. Note: if None then env var \"DB_PASSWORD\" must be available or throws error
+    - table_name (str | None): name of table inside the database, defaults to online_retail_ii
+    - schema_table_name (str | None): name of table inside the database to store schema for online_retail_ii dataset(unstructured data), defaults to online_retail_ii_schema
+    """ 
+    source_uri: str
+    raw_data_path: Path
+    schema_path: Path
+    delete: bool = True
+    db_name: str = "churn"
+    db_host: str = "127.0.0.1"
+    db_port: int = 5432 
+    db_user: str = None
+    db_pass: str = None
+    table_name: str = "online_retail_ii"
+    schema_table_name: str = "online_retail_ii_schema"
 
+# pipelines
+class DataPipelineConfigType(BaseModel): 
+    collector: DataCollectorConfigType
+
+class ModelPipelineConfigType(BaseModel): 
+    ...
+
+# global config
+class ConfigType(BaseModel): 
+    data: DataPipelineConfigType
+    # model: ModelPipelineConfigType
+
+# returns
+class DataCollectorArtifacts(BaseModel): 
+    df_: pd.DataFrame
+    schema_: SchemaModel
+    df_path: Path
+    schema_path: Path
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
+
+# schema model for generated schema 
 class BaseSchema(BaseModel):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
@@ -146,13 +198,3 @@ class SchemaModel(BaseModel):
         arbitrary_types_allowed=True,
     )
 
-
-class DataPipelineConfigType(BaseModel): 
-    source_uri: str
-    raw_data_path: Path
-    schema_path: Path
-    delete: bool
-    db_name: str
-    db_host: str
-    db_port: int
-    table_name: str

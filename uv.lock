@@ -1314,7 +1314,7 @@ wheels = [
 ]
 
 [[package]]
-name = "vantara-customer-intelligence-platform"
+name = "vcip"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
