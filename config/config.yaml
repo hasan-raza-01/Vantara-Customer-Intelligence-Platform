@@ -3,7 +3,7 @@ data:
     source_uri: https://github.com/hasan-raza-01/Data/raw/main/online+retail+ii.zip
     raw_data_path: data/raw/data.csv
     schema_path: data/raw/schema.json
-    delete: False # Optional, defaults to True
+    delete: True # Optional, defaults to True
     db_name: churn # Optional, defaults to churn 
     db_host: 127.0.0.1 # Optional, defaults to 127.0.0.1
     db_port: 5432 # Optional, defaults to 5432
